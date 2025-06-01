@@ -1,0 +1,122 @@
+{
+  "name": "Asistente IA para negocios de belleza",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-ia",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "operation": "messageAssistant",
+        "sourcePrompt": "text",
+        "prompt": "Eres un asistente para un negocio de belleza. Identifica qué servicios solicita el cliente en el siguiente mensaje: \"{{$json[\"body\"][\"mensaje\"]}}\".",
+        "temperature": 0.7,
+        "maxTokens": 500
+      },
+      "id": "2",
+      "name": "OpenAI Assistant",
+      "type": "n8n-nodes-base.openai",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "openAiApi": "TuCredencialOpenAI"
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getMany",
+        "sheetId": "TuIDdeGoogleSheet",
+        "range": "Servicios!A2:D100",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": "TuCredencialGoogle"
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "respuesta",
+              "value": "Aquí va la respuesta que vas a armar con los datos obtenidos"
+            }
+          ]
+        }
+      },
+      "id": "4",
+      "name": "Set Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {},
+      "id": "5",
+      "name": "Response",
+      "type": "n8n-nodes-base.httpResponse",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Assistant": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Set Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Response": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
